@@ -40,29 +40,6 @@ def hello_world():
     return {"message": "Hello World"}
 
 
-# ─── Signup & Login ─────────────────────────────────────────────
-
-@app.post("/signup", response_model=schemas.UserResponse)
-def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    """Register a new user."""
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
-
-
-@app.post("/login", response_model=schemas.Token)
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    """Login and get an access token."""
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if not db_user:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    if not crud.verify_password(user.password, db_user.password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    access_token = create_access_token(data={"sub": db_user.email, "user_id": db_user.id})
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
 # ─── User Routes ────────────────────────────────────────────────
 
 @app.post("/users", response_model=schemas.UserResponse)
